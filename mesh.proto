@@ -31,11 +31,6 @@ option java_outer_classname = "MeshProtos";
  * a gps position
  */
 message Position {
-  /*
-   * The old (pre 1.2) position encoding sent lat/lon as sint32s in field 7,8.
-   * Do not use to prevent confusing old apps
-   */
-  reserved 7, 8;
 
   /*
    * The new preferred location encoding, divide by 1e-7 to get degrees
@@ -405,25 +400,6 @@ message Routing {
      * in addition to ack.fail_id to provide details on the type of failure). 
      */
     Error error_reason = 3;
-
-    /*
-     * Deprecated - this has been replced with error_reason == NONE && request_id != 0
-     * This is an ack.
-     * This packet is a requested acknoledgement indicating that we have received
-     * the specified message ID.
-     * This packet type can be used both for immediate (0 hops) messages or can be routed through multiple hops if dest is set.
-     * Note: As an optimization, recipients can _also_ populate a field in payload
-     * if they think the recipient would appreciate that extra state.
-     *
-     * fixed32 success_id = 4;
-     */
-
-     /*
-      * Deprecated - this has been replced with error_reason !== NONE && request_id != 0
-      * This is a nak, we failed to deliver this message.
-      *
-      * fixed32 fail_id = 5;
-      */
   } 
 }
 
@@ -834,25 +810,6 @@ message MyNodeInfo {
   uint32 max_channels = 15;
 
   /*
-   * Deprecated! ONLY USED IN DEVICE CODE (for upgrading old 1.0 firmwares) DO NOT READ ELSEWHERE.
-   * The region code for my radio (US, CN, etc...)
-   * Note: This string is deprecated.
-   * The 1.0 builds populate it based on the flashed firmware name.
-   * But for newer builds this string will be unpopulated (missing/null).
-   * For those builds you should instead look at the new read/write region enum in UserSettings
-   * The format of this string was 1.0-US or 1.0-CN etc.. Or empty string if unset.
-   */
-  string region = 4 [deprecated = true];
-
-  /*
-   * TBEAM, HELTEC, etc...
-   * Starting in 1.2.11 moved to hw_model enum in the NodeInfo object.
-   * Apps will still need the string here for older builds
-   * (so OTA update can find the right image), but if the enum is available it will be used instead.
-   */
-  string hw_model_deprecated = 5 [deprecated = true];
-
-  /*
    * 0.0.5 etc...
    */
   string firmware_version = 6;
@@ -953,16 +910,6 @@ message LogRecord {
 message FromRadio {
 
   /*
-   * In the <1.2 versions packet had ID 2, to prevent confusing old apps with our new packets, we've changed
-   */
-  reserved 2;
-
-  /*
-   * In the <1.2 versions nodeinfo had ID 4, to prevent confusing old apps with our new packets, we've changed
-   */
-  reserved 6;
-
-  /*
    * The packet num, used to allow the phone to request missing read packets from the FIFO,
    * see our bluetooth docs
    */
@@ -1032,12 +979,6 @@ message ToRadio {
      */
     bool mqtt_gateway = 2;
   }
-
-  /*
-   * In the <1.2 versions packet had ID 2, to prevent confusing old apps with our new packets, we've changed.
-   * 101-103 were used for set_radio, set_owner, set_channel 
-   */
-  reserved 1, 101, 102, 103;
 
   oneof payloadVariant {
 

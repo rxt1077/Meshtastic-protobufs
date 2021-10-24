@@ -11,23 +11,6 @@ import "radioconfig.proto";
 option java_outer_classname = "DeviceOnly";
 
 /*
- * This is a stub version of the old 1.1 representation of RadioConfig.
- * But only keeping the region info.
- * The device firmware uses this stub while migrating old nodes to the new preferences system.
- */
-message LegacyRadioConfig {
-    message LegacyPreferences {
-      
-      /*
-       * The region code for my radio (US, CN, EU433, etc...)
-       */
-      RegionCode region = 15;
-    }
-
-     LegacyPreferences preferences = 1;
-}
-
-/*
  * This message is never sent over the wire, but it is used for serializing DB
  * state to flash in the device code
  * FIXME, since we write this each time we enter deep sleep (and have infinite
@@ -35,16 +18,6 @@ message LegacyRadioConfig {
  * the receive queue and use the preferences store for the other stuff
  */
 message DeviceState {
-
-    /*
-     * Was secondary_channels before 1.2
-     */
-    reserved 12;
-
-    /*
-     * Moved to its own file, but we keep this here so we can automatically migrate old radio.region settings
-     */
-    LegacyRadioConfig legacyRadio = 1;
   
     /*
      * Read only settings/info about this node
