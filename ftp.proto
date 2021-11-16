@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+/* Protobufs used to transfer files to/from SPIFFs
+ * Protocol is a simple stop-and-wait ARQ utilizing ACKs in the reliable router */ 
+
+option java_package = "com.geeksville.mesh";
+option optimize_for = LITE_RUNTIME;
+option go_package = "github.com/meshtastic/gomeshproto";
+
+option java_outer_classname = "FtpProtos";
+
+/* A request to read a file */
+message FtpReadRequest {
+    /* the full path of the filename
+     * SPIFFs doesn't really have directories, it's entirely store in the path */
+    string name = 1;
+
+    /* the byte index to start sending packets from
+     * this allows for resuming downloads */
+    uint32 start_at = 2;
+}
+
+/* A request to write to a file */
+message FtpWriteRequest {
+    /* the full path of the filename */
+    string name = 1;
+
+    /* whether to append to an existing file
+     * this allows for resuming uploads */
+    bool append = 2;
+}
+
+/* A request for information about file/files(s)
+ * this reuqest may result in multiple packets
+ * the end of the transaction is signified with an empty FtpInfo packet */
+message FtpInfoRequest {
+    /* the full path of a file or directory
+     * if a file is given a single FtpInfo response followed by an empty FtpInfo packet is sent
+     * if a directory is signe multiple FtpInfo responses for all files in the directory are sent, followed by an empty FtpInfo packet */ 
+    string name = 1;
+}
+
+/* Information about a file */
+message FtpInfo {
+    /* the full path of the file */
+    string name = 1;
+
+    /* the size of the file in bytes */
+    uint32 size = 2;
+
+    /* a CRC32 of the file (md5 was too big long for such small packets) */
+    uint32 crc = 3; 
+}
+
+/* An FTP error */
+enum FtpError {
+    /* this isn't used, but if our errors are zero they won't be sent
+     * in a protobuf */
+    NONE = 0;
+
+    /* operations are handled one at a time
+     * if you attempt to perform an operation
+     * while another is ongoing, you will receive this */
+    BUSY = 1;
+
+    /* attempted to read a file that doesn't exist */
+    FILE_EXISTS = 2;
+
+    /* failure to open a file */
+    FILE_OPEN = 3;
+
+    /* failure to move to a location in a file during read (resume support) */
+    FILE_SEEK = 4;
+
+    /* failure to write to a file during a write transaction */
+    FILE_WRITE = 5;
+}
+
+message FtpMessage {
+    oneof variant {
+        FtpReadRequest rrq = 1;
+        FtpWriteRequest wrq = 2;
+        FtpInfoRequest irq = 3;
+        bytes data = 4;
+        FtpError error = 5;
+        FtpInfo info = 6;
+    }
+}

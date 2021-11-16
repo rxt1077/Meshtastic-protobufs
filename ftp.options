@@ -1,0 +1,12 @@
+*FtpMessage.variant anonymous_oneof:true
+
+# max name size in SPIFFS is 32 bytes
+*FtpReadRequest.name max_size:32
+*FtpWriteRequest.name max_size:32
+*FtpInfoRequest.name max_size:32
+*FtpInfo.name max_size:32
+
+# testing shows that 128 seems to work best
+# be sure the FTP_BLOCK_SIZE in FtpPlugin.h is set accordingly
+# also be sure the Python client is using the same number
+*FtpMessage.data max_size:128
